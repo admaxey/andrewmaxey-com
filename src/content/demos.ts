@@ -4,17 +4,17 @@ export const demos: Demo[] = [
   {
     slug: "myozt",
     title: "MyOZT",
-    description: "A full-stack precious metals portfolio tracker with real-time spot prices, interactive visualizations, and comprehensive analytics.",
-    longDescription: `MyOZT is a sophisticated precious metals portfolio management application designed for serious stackers and collectors. Built with Next.js 15 and PostgreSQL, it provides real-time spot price tracking for gold, silver, platinum, and palladium, along with powerful portfolio analytics.
+    description: "A real-time precious metals price board for dealers to display spot prices, set premiums, and manage their shop inventory.",
+    longDescription: `MyOZT is a dealer-focused precious metals price board designed for coin shops and bullion dealers. Built with Next.js 15 and PostgreSQL, it displays real-time spot prices for gold, silver, platinum, and palladium while giving dealers full control over premiums and inventory.
 
 Key features include:
 • Real-time spot price integration with multiple data sources
-• Interactive price board with live market data
-• Admin panel for inventory and pricing management
+• Interactive price board for customer-facing displays
+• Admin panel for setting buy/sell premiums by product
 • Customizable themes and visual effects
-• Kiosk mode for retail display environments
-• Beautiful dark-themed UI optimized for data-dense displays
-• Microsoft authentication for secure access`,
+• Kiosk mode optimized for in-store displays
+• Multi-device management for shop deployments
+• Microsoft authentication for secure dealer access`,
     type: "showcase",
     images: [
       "/demos/myozt/price-board.png",
