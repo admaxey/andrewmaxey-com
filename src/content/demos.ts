@@ -36,7 +36,6 @@ Key features include:
       "Vercel",
       "Neon",
     ],
-    repo: "https://github.com/admaxey/myozt",
     tags: ["full-stack", "finance", "next.js", "postgresql", "real-time"],
     featured: true,
     date: "2024-12",
