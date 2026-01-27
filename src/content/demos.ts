@@ -2,10 +2,50 @@ import { Demo } from "@/types/demos";
 
 export const demos: Demo[] = [
   {
+    slug: "myozt",
+    title: "MyOZT",
+    description: "A full-stack precious metals portfolio tracker with real-time spot prices, interactive visualizations, and comprehensive analytics.",
+    longDescription: `MyOZT is a sophisticated precious metals portfolio management application designed for serious stackers and collectors. Built with Next.js 15 and PostgreSQL, it provides real-time spot price tracking for gold, silver, platinum, and palladium, along with powerful portfolio analytics.
+
+Key features include:
+• Real-time spot price integration with multiple data sources
+• Interactive portfolio board with drag-and-drop organization  
+• Detailed item tracking with purchase history and premiums
+• Melt value calculations and profit/loss analysis
+• Beautiful dark-themed UI optimized for data-dense displays
+• Microsoft authentication for secure access
+• Mobile-responsive design for on-the-go portfolio checks`,
+    type: "showcase",
+    images: [
+      "/demos/myozt/board.png",
+      "/demos/myozt/hero.png",
+      "/demos/myozt/faq.png",
+      "/demos/myozt/landing.png",
+    ],
+    url: "https://myozt.com",
+    techStack: [
+      "Next.js 15",
+      "React 19",
+      "TypeScript",
+      "PostgreSQL",
+      "Prisma",
+      "Tailwind CSS",
+      "NextAuth.js",
+      "Vercel",
+      "Neon",
+    ],
+    repo: "https://github.com/admaxey/myozt",
+    tags: ["full-stack", "finance", "next.js", "postgresql", "real-time"],
+    featured: true,
+    date: "2024-12",
+  },
+  {
     slug: "sip-game",
     title: "Super Identity Partners",
     description: "A retro platformer built for CDW & Cisco cybersecurity events. Collect MFA tokens across three levels while avoiding phishing emails, hackers, and data breaches.",
-    longDescription: "Super Identity Partners is a Super Mario Bros. 3 style platformer created for CDW and Cisco cybersecurity awareness events. Players navigate through three themed levels, collecting MFA tokens while dodging security threats like phishing emails, hackers, and data breaches. Features authentic cracktro-style music and pixel-perfect retro graphics.",
+    longDescription: `Super Identity Partners is a Super Mario Bros. 3 style platformer created for CDW and Cisco cybersecurity awareness events. Players navigate through three themed levels, collecting MFA tokens while dodging security threats like phishing emails, hackers, and data breaches. Features authentic cracktro-style music and pixel-perfect retro graphics.
+
+The game was developed as an engaging way to promote cybersecurity awareness at trade shows and corporate events, combining nostalgic gameplay with modern security messaging.`,
     type: "live",
     path: "/demos/sip-game/",
     fullScreen: true,
@@ -13,29 +53,6 @@ export const demos: Demo[] = [
     featured: true,
     date: "2024-01",
   },
-  // Add more demos here following this pattern:
-  // 
-  // Live demo example:
-  // {
-  //   slug: "my-app",
-  //   title: "My App",
-  //   description: "Short description",
-  //   type: "live",
-  //   path: "/demos/my-app/",
-  //   tags: ["react", "typescript"],
-  // },
-  //
-  // Showcase example:
-  // {
-  //   slug: "myozt",
-  //   title: "MyOZT",
-  //   description: "Precious metals portfolio tracker",
-  //   type: "showcase",
-  //   images: ["/demos/myozt/screenshot-1.png", "/demos/myozt/screenshot-2.png"],
-  //   url: "https://myozt.com",
-  //   techStack: ["Next.js", "PostgreSQL", "Tailwind"],
-  //   tags: ["finance", "full-stack"],
-  // },
 ];
 
 export function getDemoBySlug(slug: string): Demo | undefined {

@@ -10,17 +10,45 @@ type DemoShowcaseProps = {
 export function DemoShowcase({ demo }: DemoShowcaseProps) {
   const [activeImage, setActiveImage] = useState(0);
 
+  // Parse description for bullet points
+  const descriptionParts = (demo.longDescription || demo.description).split("\n\n");
+
   return (
     <div className="space-y-8">
       {/* Main image viewer */}
       {demo.images.length > 0 && (
         <div className="space-y-4">
-          <div className="aspect-video bg-background rounded-xl overflow-hidden border border-border">
+          <div className="aspect-video bg-background rounded-xl overflow-hidden border border-border relative group">
             <img
               src={demo.images[activeImage]}
               alt={`${demo.title} screenshot ${activeImage + 1}`}
               className="w-full h-full object-contain"
             />
+            {/* Image navigation arrows */}
+            {demo.images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setActiveImage((prev) => (prev === 0 ? demo.images.length - 1 : prev - 1))}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setActiveImage((prev) => (prev === demo.images.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+            {/* Image counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 rounded-full text-sm text-white">
+              {activeImage + 1} / {demo.images.length}
+            </div>
           </div>
 
           {/* Thumbnail strip */}
@@ -49,10 +77,37 @@ export function DemoShowcase({ demo }: DemoShowcaseProps) {
       )}
 
       {/* Description */}
-      <div className="prose prose-invert max-w-none">
-        <p className="text-text-secondary text-lg leading-relaxed">
-          {demo.longDescription || demo.description}
-        </p>
+      <div className="space-y-4">
+        {descriptionParts.map((part, idx) => {
+          // Check if this part contains bullet points
+          if (part.includes("• ") || part.includes("- ")) {
+            const lines = part.split("\n").filter(Boolean);
+            const title = lines[0].endsWith(":") ? lines[0] : null;
+            const bullets = title ? lines.slice(1) : lines;
+            
+            return (
+              <div key={idx}>
+                {title && (
+                  <p className="text-text-primary font-medium mb-2">{title}</p>
+                )}
+                <ul className="space-y-1.5">
+                  {bullets.map((bullet, bIdx) => (
+                    <li key={bIdx} className="flex items-start gap-2 text-text-secondary">
+                      <span className="text-accent mt-1.5">•</span>
+                      <span>{bullet.replace(/^[•\-]\s*/, "")}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          }
+          
+          return (
+            <p key={idx} className="text-text-secondary text-lg leading-relaxed">
+              {part}
+            </p>
+          );
+        })}
       </div>
 
       {/* Tech stack */}
@@ -63,7 +118,7 @@ export function DemoShowcase({ demo }: DemoShowcaseProps) {
             {demo.techStack.map((tech) => (
               <span
                 key={tech}
-                className="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm font-mono"
+                className="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm font-mono hover:border-accent transition-colors"
               >
                 {tech}
               </span>
@@ -73,7 +128,7 @@ export function DemoShowcase({ demo }: DemoShowcaseProps) {
       )}
 
       {/* Links */}
-      <div className="flex gap-4 pt-4">
+      <div className="flex gap-4 pt-4 border-t border-border">
         {demo.url && (
           <a
             href={demo.url}
