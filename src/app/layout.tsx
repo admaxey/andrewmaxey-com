@@ -27,7 +27,6 @@ function Nav() {
       <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
         <a href="/" className="font-display text-xl tracking-tight">Andrew Maxey</a>
         <div className="flex items-center gap-8 text-sm text-text-secondary">
-          <a href="/projects" className="link-hover hover:text-text-primary transition-colors">Projects</a>
           <a href="/demos" className="link-hover hover:text-text-primary transition-colors">Demos</a>
           <a href="/blog" className="link-hover hover:text-text-primary transition-colors">Blog</a>
           <a href="/about" className="link-hover hover:text-text-primary transition-colors">About</a>
