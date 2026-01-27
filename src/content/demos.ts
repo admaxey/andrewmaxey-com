@@ -9,18 +9,17 @@ export const demos: Demo[] = [
 
 Key features include:
 • Real-time spot price integration with multiple data sources
-• Interactive portfolio board with drag-and-drop organization  
+• Interactive price board with live market data
+• Dealer control panel for inventory management
 • Detailed item tracking with purchase history and premiums
 • Melt value calculations and profit/loss analysis
 • Beautiful dark-themed UI optimized for data-dense displays
-• Microsoft authentication for secure access
-• Mobile-responsive design for on-the-go portfolio checks`,
+• Microsoft authentication for secure access`,
     type: "showcase",
     images: [
       "/demos/myozt/board.png",
-      "/demos/myozt/hero.png",
-      "/demos/myozt/faq.png",
-      "/demos/myozt/help.png",
+      "/demos/myozt/admin.png",
+      "/demos/myozt/home.png",
     ],
     url: "https://myozt.com",
     techStack: [
