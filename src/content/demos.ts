@@ -10,16 +10,19 @@ export const demos: Demo[] = [
 Key features include:
 • Real-time spot price integration with multiple data sources
 • Interactive price board with live market data
-• Dealer control panel for inventory management
-• Detailed item tracking with purchase history and premiums
-• Melt value calculations and profit/loss analysis
+• Admin panel for inventory and pricing management
+• Customizable themes and visual effects
+• Kiosk mode for retail display environments
 • Beautiful dark-themed UI optimized for data-dense displays
 • Microsoft authentication for secure access`,
     type: "showcase",
     images: [
-      "/demos/myozt/board.png",
-      "/demos/myozt/admin.png",
-      "/demos/myozt/home.png",
+      "/demos/myozt/price-board.png",
+      "/demos/myozt/admin-junk.png",
+      "/demos/myozt/admin-gold.png",
+      "/demos/myozt/themes.png",
+      "/demos/myozt/devices.png",
+      "/demos/myozt/kiosk.png",
     ],
     url: "https://myozt.com",
     techStack: [
