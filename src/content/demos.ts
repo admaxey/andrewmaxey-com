@@ -20,7 +20,7 @@ Key features include:
       "/demos/myozt/board.png",
       "/demos/myozt/hero.png",
       "/demos/myozt/faq.png",
-      "/demos/myozt/landing.png",
+      "/demos/myozt/help.png",
     ],
     url: "https://myozt.com",
     techStack: [
