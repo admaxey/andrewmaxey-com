@@ -1266,24 +1266,18 @@ function updatePlayer() {
     }
   }
   
-// Powerup collection (Firewall Shield)
+  // Powerup collection (Firewall Shield)
   for (let i = powerups.length - 1; i >= 0; i--) {
     const pu = powerups[i];
     if (rectOverlap(player.x, player.y, pw, ph, pu.x, pu.y, 14, 14)) {
       powerups.splice(i, 1);
-      if (player.big) {
-        // Already shielded - grant extra life instead
-        lives++;
-        SFX.powerup();
-        spawnParticles(pu.x + 7, pu.y + 7, '#ff6b9d', 12);
-        floatingTexts.push({ x: pu.x, y: pu.y - 8, text: '+1 LIFE!', timer: 50, vy: -1 });
-      } else {
+      if (!player.big) {
         player.big = true;
         player.y -= 8;
-        SFX.powerup();
-        spawnParticles(pu.x + 7, pu.y + 7, getShieldInfo().color, 12);
-        floatingTexts.push({ x: pu.x, y: pu.y - 8, text: getShieldInfo().name + ' SHIELD!', timer: 50, vy: -1 });
       }
+      SFX.powerup();
+      spawnParticles(pu.x + 7, pu.y + 7, getShieldInfo().color, 12);
+      floatingTexts.push({ x: pu.x, y: pu.y - 8, text: getShieldInfo().name + ' SHIELD!', timer: 50, vy: -1 });
     }
   }
 }
