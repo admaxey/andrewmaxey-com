@@ -1396,28 +1396,16 @@ function updateEnemies() {
       } else {
         e.x = nextX;
       }
-    } else if (e.type === 1) {
-      // Data Breach Worm - patrol, becomes shell
-      if (!e.shellMoving) {
-        const nextX = e.x + e.vx;
-        const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-        if (nextX <= e.minX || nextX >= e.maxX || 
-            !hasGroundAt(checkX, e.y + 18) ||
-            enemyHitsObstacle(nextX, e.y, 16, 16)) {
-          e.vx *= -1;
-        } else {
-          e.x = nextX;
-        }
+} else if (e.type === 1) {
+      // Data Breach Worm - simple patrol (same as type 0)
+      const nextX = e.x + e.vx;
+      const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
+      if (nextX <= e.minX || nextX >= e.maxX || 
+          !hasGroundAt(checkX, e.y + 18) ||
+          enemyHitsObstacle(nextX, e.y, 16, 16)) {
+        e.vx *= -1;
       } else {
-        e.x += e.vx * 2;
-        for (const other of enemies) {
-          if (other === e || !other.alive || other.stompTimer > 0) continue;
-          if (rectOverlap(e.x, e.y, 16, 16, other.x, other.y, 16, 16)) {
-            other.alive = false;
-            SFX.kick();
-            spawnParticles(other.x + 8, other.y + 8, '#ff4444', 8);
-          }
-        }
+        e.x = nextX;
       }
     } else if (e.type === 2) {
       // Hacker - chase AI
@@ -1639,12 +1627,8 @@ function updateEnemies() {
         const horizontalOverlap = Math.abs(playerCenterX - enemyCenterX) < (pw / 2 + eHitW / 2 - 2);
         
         if (player.vy > 0 && playerFeetY < enemyMidY) {
-          if (e.type === 1 && !e.shellMoving) {
-            e.shellMoving = true;
-            e.vx = player.x < e.x ? 1 : -1;
-          } else {
-            e.stompTimer = 15;
-          }
+          // All enemies die on stomp (no shell mode)
+          e.stompTimer = 15;
           
           player.vy = input.a ? -6 : -4;
           hitstop = 4;
