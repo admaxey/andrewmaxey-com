@@ -1608,7 +1608,6 @@ function updateEnemies() {
     }
     
     // Player collision
-    if (player.invincible <= 0) {
       // Wider hitbox for easier stomping (24px wide, centered on 16px sprite)
       const eHitW = 28;
       const eHitH = 16;
@@ -1635,11 +1634,10 @@ function updateEnemies() {
           SFX.stomp();
           spawnParticles(e.x + 8, e.y + 8, '#ff8844', 8);
           floatingTexts.push({ x: e.x, y: e.y - 8, text: 'BLOCKED!', timer: 40, vy: -1 });
-        } else {
+        } else if (player.invincible <= 0) {
           die();
         }
       }
-    }
   }
 }
 
