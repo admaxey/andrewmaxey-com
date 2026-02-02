@@ -884,7 +884,9 @@ let coins = 0;
 let tokens = [];
 let collectedTokens = 0;
 let checkpointReached = -1;
+  checkpointTimers = (level.checkpoints || []).map(() => 0);
 let checkpointTokens = 0;
+let checkpointTimers = [];
 let allTokensNotified = false;
   exitLasersActive = true;
   exitUnlockTimer = 0;
@@ -920,6 +922,7 @@ function initLevel() {
   camera.targetX = 0;
   collectedTokens = 0;
   checkpointReached = -1;
+  checkpointTimers = (level.checkpoints || []).map(() => 0);
   checkpointTokens = 0;
   allTokensNotified = false;
   exitLasersActive = true;
@@ -1200,16 +1203,28 @@ function updatePlayer() {
   if (player.x < 0) player.x = 0;
   if (player.x > level.width - pw) player.x = level.width - pw;
   
-  // Checkpoint detection (QA FIX: added flag activation)
+  // Checkpoint detection - collision based with activation animation
   if (level.checkpoints) {
     for (let i = 0; i < level.checkpoints.length; i++) {
+      const cp = level.checkpoints[i];
+      // Increment animation timer for activated checkpoints
+      if (checkpointTimers[i] > 0 && checkpointTimers[i] < 60) {
+        checkpointTimers[i]++;
+      }
+      // Check for new activation (collision with flag pole area: 20x52)
       if (i > checkpointReached) {
-        const cp = level.checkpoints[i];
-        if (player.x >= cp[0] - 20 && player.x <= cp[0] + 20) {
+        const flagX = cp[0] - 10;
+        const flagY = cp[1] - 48;
+        const flagW = 20;
+        const flagH = 52;
+        if (rectOverlap(player.x, player.y, pw, ph, flagX, flagY, flagW, flagH)) {
           checkpointReached = i;
           checkpointTokens = collectedTokens;
-          floatingTexts.push({ x: cp[0], y: cp[1] - 40, text: 'CHECKPOINT!', timer: 90, vy: -0.5 });
+          checkpointTimers[i] = 1;  // Start activation animation
+          floatingTexts.push({ x: cp[0], y: cp[1] - 56, text: 'CHECKPOINT!', timer: 90, vy: -0.8 });
+          spawnParticles(cp[0], cp[1] - 32, '#00ff88', 16);
           SFX.powerup();
+          screenShake = 3;
         }
       }
     }
@@ -1397,27 +1412,15 @@ function updateEnemies() {
         e.x = nextX;
       }
     } else if (e.type === 1) {
-      // Data Breach Worm - patrol, becomes shell
-      if (!e.shellMoving) {
-        const nextX = e.x + e.vx;
-        const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-        if (nextX <= e.minX || nextX >= e.maxX || 
-            !hasGroundAt(checkX, e.y + 18) ||
-            enemyHitsObstacle(nextX, e.y, 16, 16)) {
-          e.vx *= -1;
-        } else {
-          e.x = nextX;
-        }
+      // Data Breach Worm - simple patrol (same as type 0)
+      const nextX = e.x + e.vx;
+      const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
+      if (nextX <= e.minX || nextX >= e.maxX || 
+          !hasGroundAt(checkX, e.y + 18) ||
+          enemyHitsObstacle(nextX, e.y, 16, 16)) {
+        e.vx *= -1;
       } else {
-        e.x += e.vx * 2;
-        for (const other of enemies) {
-          if (other === e || !other.alive || other.stompTimer > 0) continue;
-          if (rectOverlap(e.x, e.y, 16, 16, other.x, other.y, 16, 16)) {
-            other.alive = false;
-            SFX.kick();
-            spawnParticles(other.x + 8, other.y + 8, '#ff4444', 8);
-          }
-        }
+        e.x = nextX;
       }
     } else if (e.type === 2) {
       // Hacker - chase AI
@@ -1621,40 +1624,35 @@ function updateEnemies() {
     }
     
     // Player collision
-    if (player.invincible <= 0) {
-      // Wider hitbox for easier stomping (24px wide, centered on 16px sprite)
-      const eHitW = 28;
-      const eHitH = 16;
-      const eHitX = e.x - 6;  // Center the wider hitbox
+    // Wider hitbox for easier stomping (24px wide, centered on 16px sprite)
+    const eHitW = 28;
+    const eHitH = 16;
+    const eHitX = e.x - 6;  // Center the wider hitbox
+    
+    if (rectOverlap(player.x, player.y, pw, ph, eHitX, e.y, eHitW, eHitH)) {
+      // More forgiving stomp detection:
+      // - Player must be falling (vy > 0)
+      // - Player's feet must be in the top 60% of enemy (was top 10px of 16px)
+      // - Player's center must be roughly over the enemy
+      const playerFeetY = player.y + ph;
+      const enemyMidY = e.y + eHitH * 0.75;  // Top 60% is stompable
+      const playerCenterX = player.x + pw / 2;
+      const enemyCenterX = eHitX + eHitW / 2;
+      const horizontalOverlap = Math.abs(playerCenterX - enemyCenterX) < (pw / 2 + eHitW / 2 - 2);
       
-      if (rectOverlap(player.x, player.y, pw, ph, eHitX, e.y, eHitW, eHitH)) {
-        // More forgiving stomp detection:
-        // - Player must be falling (vy > 0)
-        // - Player's feet must be in the top 60% of enemy (was top 10px of 16px)
-        // - Player's center must be roughly over the enemy
-        const playerFeetY = player.y + ph;
-        const enemyMidY = e.y + eHitH * 0.75;  // Top 60% is stompable
-        const playerCenterX = player.x + pw / 2;
-        const enemyCenterX = eHitX + eHitW / 2;
-        const horizontalOverlap = Math.abs(playerCenterX - enemyCenterX) < (pw / 2 + eHitW / 2 - 2);
+      if (player.vy > 0 && playerFeetY < enemyMidY) {
+        // All enemies die on stomp (no shell mode)
+        e.stompTimer = 15;
         
-        if (player.vy > 0 && playerFeetY < enemyMidY) {
-          if (e.type === 1 && !e.shellMoving) {
-            e.shellMoving = true;
-            e.vx = player.x < e.x ? 1 : -1;
-          } else {
-            e.stompTimer = 15;
-          }
-          
-          player.vy = input.a ? -6 : -4;
-          hitstop = 4;
-          screenShake = 3;
-          SFX.stomp();
-          spawnParticles(e.x + 8, e.y + 8, '#ff8844', 8);
-          floatingTexts.push({ x: e.x, y: e.y - 8, text: 'BLOCKED!', timer: 40, vy: -1 });
-        } else {
-          die();
-        }
+        player.vy = input.a ? -6 : -4;
+        hitstop = 4;
+        screenShake = 3;
+        SFX.stomp();
+        spawnParticles(e.x + 8, e.y + 8, '#ff8844', 8);
+        floatingTexts.push({ x: e.x, y: e.y - 8, text: 'BLOCKED!', timer: 40, vy: -1 });
+      } else if (player.invincible <= 0) {
+        // Only take damage if not invincible
+        die();
       }
     }
   }
@@ -4767,31 +4765,69 @@ function drawLevel() {
       }
     }
   }
-  // Checkpoints - draw flag markers
+  // Checkpoints - animated flag markers
   if (level.checkpoints) {
     for (let i = 0; i < level.checkpoints.length; i++) {
       const cp = level.checkpoints[i];
       const cpx = cp[0] - camera.x;
       const cpy = cp[1];
       if (cpx < -40 || cpx > W + 40) continue;
-      // Flag pole
-      ctx.fillStyle = '#666';
-      ctx.fillRect(cpx - 2, cpy - 48, 4, 52);
-      // Flag
+      
       const reached = i <= checkpointReached;
-      ctx.fillStyle = reached ? '#00ff88' : '#ff6644';
+      const activationT = checkpointTimers[i] || 0;
+      const flagRaise = reached ? Math.min(activationT / 30, 1) : 0;  // Flag rises over 30 frames
+      
+      // Base platform
+      ctx.fillStyle = reached ? "#00aa66" : "#885533";
+      ctx.fillRect(cpx - 10, cpy - 4, 20, 8);
+      ctx.fillStyle = reached ? "#00dd88" : "#aa6644";
+      ctx.fillRect(cpx - 8, cpy - 6, 16, 6);
+      
+      // Flag pole
+      ctx.fillStyle = "#888";
+      ctx.fillRect(cpx - 2, cpy - 52, 4, 56);
+      ctx.fillStyle = "#aaa";
+      ctx.fillRect(cpx - 1, cpy - 52, 2, 56);
+      
+      // Pole top ball
+      ctx.fillStyle = reached ? "#ffdd00" : "#666";
       ctx.beginPath();
-      ctx.moveTo(cpx + 2, cpy - 48);
-      ctx.lineTo(cpx + 22, cpy - 38);
-      ctx.lineTo(cpx + 2, cpy - 28);
+      ctx.arc(cpx, cpy - 54, 4, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Flag (rises when activated)
+      const flagY = cpy - 20 - (flagRaise * 28);  // Rises from bottom to top
+      const waveOffset = reached ? Math.sin(frame * 0.15) * 2 : 0;
+      ctx.fillStyle = reached ? "#00ff88" : "#ff6644";
+      ctx.beginPath();
+      ctx.moveTo(cpx + 2, flagY);
+      ctx.lineTo(cpx + 24 + waveOffset, flagY + 10);
+      ctx.lineTo(cpx + 2, flagY + 20);
       ctx.closePath();
       ctx.fill();
-      // Glow if reached
+      // Flag detail
+      ctx.fillStyle = reached ? "#00cc66" : "#cc4422";
+      ctx.beginPath();
+      ctx.moveTo(cpx + 4, flagY + 4);
+      ctx.lineTo(cpx + 16 + waveOffset * 0.5, flagY + 10);
+      ctx.lineTo(cpx + 4, flagY + 16);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Glow effect
       if (reached) {
-        ctx.globalAlpha = 0.3 + Math.sin(frame * 0.1) * 0.2;
-        ctx.fillStyle = '#00ff88';
+        ctx.globalAlpha = 0.3 + Math.sin(frame * 0.1) * 0.15;
+        ctx.fillStyle = "#00ff88";
         ctx.beginPath();
-        ctx.arc(cpx, cpy - 38, 12, 0, Math.PI * 2);
+        ctx.arc(cpx, flagY + 10, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      } else {
+        // Pulsing indicator for unreached checkpoints
+        ctx.globalAlpha = 0.4 + Math.sin(frame * 0.08) * 0.2;
+        ctx.fillStyle = "#ff8866";
+        ctx.beginPath();
+        ctx.arc(cpx, cpy - 32, 8, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
       }
@@ -5293,7 +5329,16 @@ function drawLevel() {
     if (e.type === 0) {
       drawPhishingEmail(0, 0, e.animTimer, squash);
     } else if (e.type === 1) {
-      drawDataBreachWorm(0, 0, e.animTimer, squash, e.shellMoving, e.vx > 0);
+      // Data Breach Worm - simple patrol (same as type 0)
+      const nextX = e.x + e.vx;
+      const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
+      if (nextX <= e.minX || nextX >= e.maxX || 
+          !hasGroundAt(checkX, e.y + 18) ||
+          enemyHitsObstacle(nextX, e.y, 16, 16)) {
+        e.vx *= -1;
+      } else {
+        e.x = nextX;
+      }
     } else if (e.type === 2) {
       drawHacker(0, 0, e.animTimer, e.state, squash);
     } else if (e.type === 3) {
