@@ -6149,6 +6149,7 @@ function update() {
     }
   }
   // STATE: LOSE
+  else if (state === "lose") {
     if (pressed.start || pressed.a) {
       state = "title";
       lives = 5;
