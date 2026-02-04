@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Super Identity Partners v0.67</title>
+<title>Super Identity Partners v0.68</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;background:#0a0a1a;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:monospace}
@@ -966,6 +966,7 @@ function initLevel() {
     targetX: 0,
     hesitateTimer: 0,
     approachTimer: 0,
+    lastMoveDir: -1,      // Anti-oscillation: tracks last successful move direction
   }));
   
   powerups = [];
@@ -1391,24 +1392,34 @@ function updateEnemies() {
       // Phishing Email - patrol with edge and obstacle detection
       const nextX = e.x + e.vx;
       const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-      // Reverse if hitting boundary, edge, or obstacle
-      if (nextX <= e.minX || nextX >= e.maxX || 
+      const blocked = nextX <= e.minX || nextX >= e.maxX || 
           !hasGroundAt(checkX, e.y + 18) || 
-          enemyHitsObstacle(nextX, e.y, 16, 16)) {
-        e.vx *= -1;
+          enemyHitsObstacle(nextX, e.y, 16, 16);
+      if (blocked) {
+        // Only reverse if we were moving this direction (prevents oscillation)
+        if (e.lastMoveDir === Math.sign(e.vx)) {
+          e.vx *= -1;
+          e.lastMoveDir = 0;
+        }
       } else {
         e.x = nextX;
+        e.lastMoveDir = Math.sign(e.vx);
       }
-} else if (e.type === 1) {
+    } else if (e.type === 1) {
       // Data Breach Worm - simple patrol (same as type 0)
       const nextX = e.x + e.vx;
       const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-      if (nextX <= e.minX || nextX >= e.maxX || 
+      const blocked = nextX <= e.minX || nextX >= e.maxX || 
           !hasGroundAt(checkX, e.y + 18) ||
-          enemyHitsObstacle(nextX, e.y, 16, 16)) {
-        e.vx *= -1;
+          enemyHitsObstacle(nextX, e.y, 16, 16);
+      if (blocked) {
+        if (e.lastMoveDir === Math.sign(e.vx)) {
+          e.vx *= -1;
+          e.lastMoveDir = 0;
+        }
       } else {
         e.x = nextX;
+        e.lastMoveDir = Math.sign(e.vx);
       }
     } else if (e.type === 2) {
       // Hacker - chase AI
@@ -1418,12 +1429,17 @@ function updateEnemies() {
       if (e.state === 'patrol') {
         const nextX = e.x + e.vx * 0.25;
         const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-        if (nextX <= e.minX || nextX >= e.maxX || 
+        const blocked = nextX <= e.minX || nextX >= e.maxX || 
             !hasGroundAt(checkX, e.y + 18) ||
-            enemyHitsObstacle(nextX, e.y, 16, 16)) {
-          e.vx *= -1;
+            enemyHitsObstacle(nextX, e.y, 16, 16);
+        if (blocked) {
+          if (e.lastMoveDir === Math.sign(e.vx)) {
+            e.vx *= -1;
+            e.lastMoveDir = 0;
+          }
         } else {
           e.x = nextX;
+          e.lastMoveDir = Math.sign(e.vx);
         }
         if (dist < 80 && Math.abs(player.y - e.y) < 48) {
           e.state = 'alert';
@@ -1457,12 +1473,17 @@ function updateEnemies() {
       if (e.state === 'patrol') {
         const nextX = e.x + e.vx * 0.25;
         const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-        if (nextX <= e.minX || nextX >= e.maxX || 
+        const blocked = nextX <= e.minX || nextX >= e.maxX || 
             !hasGroundAt(checkX, e.y + 18) ||
-            enemyHitsObstacle(nextX, e.y, 16, 16)) {
-          e.vx *= -1;
+            enemyHitsObstacle(nextX, e.y, 16, 16);
+        if (blocked) {
+          if (e.lastMoveDir === Math.sign(e.vx)) {
+            e.vx *= -1;
+            e.lastMoveDir = 0;
+          }
         } else {
           e.x = nextX;
+          e.lastMoveDir = Math.sign(e.vx);
         }
         // Trigger when player gets close
         if (dist < 70 && Math.abs(player.y - e.y) < 40) {
@@ -1526,12 +1547,17 @@ function updateEnemies() {
       // Malicious Attachment - slow menacing bounce with edge and obstacle detection
       const nextX = e.x + e.vx * 0.5;
       const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-      if (nextX <= e.minX || nextX >= e.maxX || 
+      const blocked = nextX <= e.minX || nextX >= e.maxX || 
           !hasGroundAt(checkX, e.baseY + 18) ||
-          enemyHitsObstacle(nextX, e.baseY, 16, 16)) {
-        e.vx *= -1;
+          enemyHitsObstacle(nextX, e.baseY, 16, 16);
+      if (blocked) {
+        if (e.lastMoveDir === Math.sign(e.vx)) {
+          e.vx *= -1;
+          e.lastMoveDir = 0;
+        }
       } else {
         e.x = nextX;
+        e.lastMoveDir = Math.sign(e.vx);
       }
       e.bounceTimer = (e.bounceTimer || 0) + 1;
       e.y = e.baseY + Math.abs(Math.sin(e.bounceTimer * 0.05)) * -24;
@@ -1542,10 +1568,15 @@ function updateEnemies() {
       
       // Simple boundary patrol - no ground check needed for floating enemy
       const nextX = e.x + e.vx * 0.25;
-      if (nextX <= e.minX || nextX >= e.maxX) {
-        e.vx *= -1;
+      const blocked = nextX <= e.minX || nextX >= e.maxX;
+      if (blocked) {
+        if (e.lastMoveDir === Math.sign(e.vx)) {
+          e.vx *= -1;
+          e.lastMoveDir = 0;
+        }
       } else {
         e.x = nextX;
+        e.lastMoveDir = Math.sign(e.vx);
       }
       
       // Gentle vertical bob (reduced amplitude)
@@ -1597,12 +1628,17 @@ function updateEnemies() {
       // Data Exfiltrator - patrols and pulls player toward it, respects obstacles
       const nextX = e.x + e.vx * 0.2;
       const checkX = e.vx > 0 ? nextX + 14 : nextX + 2;
-      if (nextX <= e.minX || nextX >= e.maxX || 
+      const blocked = nextX <= e.minX || nextX >= e.maxX || 
           !hasGroundAt(checkX, e.y + 18) ||
-          enemyHitsObstacle(nextX, e.y, 16, 16)) {
-        e.vx *= -1;
+          enemyHitsObstacle(nextX, e.y, 16, 16);
+      if (blocked) {
+        if (e.lastMoveDir === Math.sign(e.vx)) {
+          e.vx *= -1;
+          e.lastMoveDir = 0;
+        }
       } else {
         e.x = nextX;
+        e.lastMoveDir = Math.sign(e.vx);
       }
       const dx = player.x - e.x;
       const dist = Math.abs(dx);
